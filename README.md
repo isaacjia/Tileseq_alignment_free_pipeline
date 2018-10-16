@@ -1,7 +1,9 @@
-# Tools and Dependencies
+## bbmerge and cutadapt are needed for reads merging and tileseq read adapter trimming
 
-# use bbmerge for tileseq
-#  this will merge tileseq reads, only for perfect overlapped reads 
+## use bbmerge for tileseq read merge
+##  this will merge tileseq reads, only for perfect overlapped reads 
+
+### first set up path, specific to each miseq run
 ```
 export fqt_out=/nfs/kitzman2/jacob/proj/shared_run_splitting/miseqm_20180928/fqt_out/
 export pfx=${fqt_out}tileseq
@@ -10,9 +12,12 @@ export miseq=20180928_miseq
 is=(${pfx}*.read1.fq.gz)
 js=(${pfx}*.read3.fq.gz)
 
-
 export OUT=/nfs/kitzman2/isaac/miseq/$miseq/tileseq_merge/
+```
 
+### loop through each pair of reads to merge reads, pfilter=1 only allow perfectly matched read merge
+
+```
 for ((i = 0; i < 60; i++)); \
 do /nfs/kitzman2/isaac/softwares/bbmap/bbmerge.sh \
 in1=${is[i]} \
@@ -22,12 +27,15 @@ outu1=$OUT/${is[i]#$fqt_out}.unmerged.fq.gz \
 outu2=$OUT/${js[i]#$fqt_out}.unmerged.fq.gz \
 pfilter=1 \ ;
 done
+```
+### rename files
 
+```
 cd $OUT
 for i in *.merged.fq.gz; do mv $i ${i/read1.fq.gz./}; done
 ```
 
-# The following linux commands will do trimming for all 21 tiles
+## The following bash commands will do trimming for all 21 tiles
 ## need cutadapt loaded
 
 ```
@@ -55,8 +63,8 @@ for i in *Tile20_*.merged.fq.gz; do cutadapt -a TGGAGAATCGCAAGGATATGAT...CCCTTTA
 for i in *Tile21_*.merged.fq.gz; do cutadapt -a GGAGTTCCTGTCCAAGGTGAAACAAATG...GGATCCGGCGCAACAAACTTC --minimum-length 20 -q 10 -O 12 -e 0.1 -o ${i%$suffix}.merged.clip.fq.gz $i ; done
 ```
 
-# Use starcode to generate tile_cluster.txt fiels
-## set distance as 0
+## Use starcode to generate tile_cluster.txt fiels. Uniq can do the same thing
+### set distance as 0
 
 ```
 for i in *.merged.clip.fq.gz; do gunzip $i; done
@@ -65,7 +73,7 @@ for i in *.merged.clip.fq; do /nfs/kitzman2/isaac/softwares/starcode/starcode -i
 mkdir tileseq_cluster
 mv *.tile_cluster.txt tileseq_cluster
 ```
-# download all the tile_cluster.txt files to local, and proceed with jupyter notebook
+## download all the tile_cluster.txt files to local, and proceed with jupyter notebook
 ```
 rsync -avzP xiaoyanj@hk.hg.med.umich.edu:/nfs/kitzman2/isaac/miseq/20180928_miseq/tileseq_merge/tileseq_cluster/* /Users/Isaac/box/Kitzman_lab/data/20180928_tileseq_cluster/
 ```
