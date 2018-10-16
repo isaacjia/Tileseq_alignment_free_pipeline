@@ -27,9 +27,10 @@ cd $OUT
 for i in *.merged.fq.gz; do mv $i ${i/read1.fq.gz./}; done
 ```
 
-# This is specific for tile14, need to adjust for other tiles
+# The following linux commands will do trimming for all 21 tiles
+## need cutadapt loaded
 
-
+```
 export suffix=.merged.fq.gz
 for i in *Tile1_*.merged.fq.gz; do cutadapt -a CCTGGAGAATTGGCTAGCCGCCGCC...CACGGCGAGGACGCGCTG --minimum-length 20 -q 10 -O 12 -e 0.1 -o ${i%$suffix}.merged.clip.fq.gz $i ; done 
 for i in *Tile2_*.merged.fq.gz; do cutadapt -a GGGGCGACTTCTATACGGCG...GATCTTCTTCTGGTTCGTCAGT --minimum-length 20 -q 10 -O 12 -e 0.1 -o ${i%$suffix}.merged.clip.fq.gz $i ; done 
@@ -52,21 +53,22 @@ for i in *Tile18_*.merged.fq.gz; do cutadapt -a TCAGAATACATTGCAACAAAGATT...GGTGT
 for i in *Tile19_*.merged.fq.gz; do cutadapt -a TGCTTTATCAGGTGAAGAAA...ATCATGGAACCAGCAGCAAAGA --minimum-length 20 -q 10 -O 12 -e 0.1 -o ${i%$suffix}.merged.clip.fq.gz $i ; done 
 for i in *Tile20_*.merged.fq.gz; do cutadapt -a TGGAGAATCGCAAGGATATGAT...CCCTTTACTGAAATGTCAGAAGA --minimum-length 20 -q 10 -O 12 -e 0.1 -o ${i%$suffix}.merged.clip.fq.gz $i ; done 
 for i in *Tile21_*.merged.fq.gz; do cutadapt -a GGAGTTCCTGTCCAAGGTGAAACAAATG...GGATCCGGCGCAACAAACTTC --minimum-length 20 -q 10 -O 12 -e 0.1 -o ${i%$suffix}.merged.clip.fq.gz $i ; done
+```
 
+# Use starcode to generate tile_cluster.txt fiels
+## set distance as 0
 
-# generate tile_cluster.txt fiels
-
+```
 for i in *.merged.clip.fq.gz; do gunzip $i; done
 export suffix=.merged.clip.fq
 for i in *.merged.clip.fq; do /nfs/kitzman2/isaac/softwares/starcode/starcode -i $i -d 0 -o ${i%$suffix}.tile_cluster.txt; done
 mkdir tileseq_cluster
 mv *.tile_cluster.txt tileseq_cluster
-
-
-
+```
+# download all the tile_cluster.txt files to local, and proceed with jupyter notebook
+```
 rsync -avzP xiaoyanj@hk.hg.med.umich.edu:/nfs/kitzman2/isaac/miseq/20180928_miseq/tileseq_merge/tileseq_cluster/* /Users/Isaac/box/Kitzman_lab/data/20180928_tileseq_cluster/
-
-for i in *.txt; do echo $i; WC $i; done
+```
 
 
 
